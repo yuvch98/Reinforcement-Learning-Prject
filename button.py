@@ -2,21 +2,29 @@
 import constants as const
 import pygame
 
+
 class Button:
-    def __init__(self, x, y, w, h, text, action=None):
+    def __init__(self, x, y, w, h, text):
         self.rect = pygame.Rect(x, y, w, h)
         self.color = const.BUTTON_COLOR
         self.hover_color = const.HOVER_COLOR
         self.text = text
         self.txt_surface = const.FONT.render(text, True, const.TEXT_COLOR)
-        self.action = action
 
-    def handle_event(self, event):
+    def handle_event(self, event) -> str:
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.rect.collidepoint(event.pos) and self.action:
-                self.action()
+            if self.rect.collidepoint(event.pos):
+                if self.text == "Continue":
+                    return ""
+                else:
 
-    def draw(self, screen):
+                    return self.text
+
+
+
+        return ""
+
+    def draw(self, screen) -> None:
         mouse_pos = pygame.mouse.get_pos()
         if self.rect.collidepoint(mouse_pos):
             pygame.draw.rect(screen, self.hover_color, self.rect)

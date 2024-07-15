@@ -9,7 +9,7 @@ class InputBox:
         self.txt_surface = const.FONT.render(text, True, const.TEXT_COLOR)
         self.active = False
 
-    def handle_event(self, event):
+    def handle_event(self, event) -> None:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
                 self.active = not self.active
@@ -27,7 +27,7 @@ class InputBox:
                     self.text += event.unicode
                 self.txt_surface = const.FONT.render(self.text, True,const.TEXT_COLOR)
 
-    def draw(self, screen):
+    def draw(self, screen) -> None:
         screen.blit(self.txt_surface, (self.rect.x + 5, self.rect.y + 5))
         pygame.draw.rect(screen, self.color, self.rect, 2)
 

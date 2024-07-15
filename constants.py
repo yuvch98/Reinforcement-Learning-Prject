@@ -2,6 +2,7 @@
 import pygame
 pygame.init()
 SCREEN_WIDTH, SCREEN_HEIGHT = 900, 700
+GRAY_COLOR = (128, 128, 128)
 BG_COLOR = (255, 255, 255)
 GRID_COLOR = (200, 200, 200)
 TEXT_COLOR = (0, 0, 0)
