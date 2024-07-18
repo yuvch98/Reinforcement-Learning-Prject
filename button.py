@@ -1,4 +1,3 @@
-#e button.py
 import constants as const
 import pygame
 
@@ -9,19 +8,16 @@ class Button:
         self.color = const.BUTTON_COLOR
         self.hover_color = const.HOVER_COLOR
         self.text = text
+        pygame.init()
         self.txt_surface = const.FONT.render(text, True, const.TEXT_COLOR)
+
+    def is_clicked(self, x, y):
+        return self.rect.collidepoint((x, y))
 
     def handle_event(self, event) -> str:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
-                if self.text == "Continue":
-                    return ""
-                else:
-
-                    return self.text
-
-
-
+                return self.text
         return ""
 
     def draw(self, screen) -> None:
