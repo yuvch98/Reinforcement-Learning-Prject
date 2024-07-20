@@ -26,12 +26,21 @@ class SARSA:
         else:
             return utils.max_dict(self.q[s])[0]
 
-
     def slippery(self, s):
         if np.random.random() < 0.5:
             return utils.max_dict(self.q[s])[0]
         else:
-            return np.random.choice(ACTION_SPACE)
+            return np.random.choice(list(self.q[s].keys()))
+
+    def second_best(self, s, a):
+        action_space = []
+        for item in s.keys():
+            if item != a:
+                action_space.append(item)
+            else:
+                continue
+        new_action = np.random.choice(action_space)
+        return new_action, s[new_action]
 
     def run(self, episodes=10000, max_steps=50, epsilon=0.1):
         reward_per_episode = []
@@ -40,20 +49,36 @@ class SARSA:
                 print("it:", it)
             s = self.grid.reset()
             a = self.epsilon_greedy(s, eps=epsilon)
+            self.grid.policeman.reset_police()
             episode_reward = 0
             step = 0
-            while not self.grid.game_over() or step < max_steps:
+            while not self.grid.game_over() and step < max_steps:
                 step += 1
+                self.grid.policeman.move()
                 r = self.grid.move(a)
-                s2 = self.grid.current_state()
-                episode_reward += r
-                a2 = self.epsilon_greedy(s, eps=epsilon)
-                if s2 in self.grid.slippery:
-                    a2 = self.slippery(s2)
-                self.q[s][a] = self.q[s][a] + self.alpha * (r + self.gamma * self.q[s2][a2] - self.q[s][a])
-                self.update_counts[s] = self.update_counts.get(s, 0) + 1
-                s = s2
-                a = a2
+                if self.grid.current_state() == self.grid.policeman.get_pos():
+                    self.grid.undo_move(a)
+                    new_action, second_best_q = self.second_best(self.q[s], a)
+                    r = self.grid.move(new_action)
+                    s2 = self.grid.current_state()
+                    episode_reward += r
+                    a2 = self.epsilon_greedy(s2, eps=epsilon)
+                    if s2 in self.grid.slippery:
+                        a2 = self.slippery(s2)
+                    self.q[s][new_action] = self.q[s][new_action] + self.alpha * (r + self.gamma * self.q[s2][a2] - self.q[s][new_action])
+                    self.update_counts[s] = self.update_counts.get(s, 0) + 1
+                    s = s2
+                    a = a2
+                else:
+                    s2 = self.grid.current_state()
+                    episode_reward += r
+                    a2 = self.epsilon_greedy(s2, eps=epsilon)
+                    if s2 in self.grid.slippery:
+                        a2 = self.slippery(s2)
+                    self.q[s][a] = self.q[s][a] + self.alpha * (r + self.gamma * self.q[s2][a2] - self.q[s][a])
+                    self.update_counts[s] = self.update_counts.get(s, 0) + 1
+                    s = s2
+                    a = a2
             reward_per_episode.append(episode_reward)
         return reward_per_episode
 

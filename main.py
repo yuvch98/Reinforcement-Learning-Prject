@@ -4,7 +4,6 @@ import sarsa_agent
 import display_animation
 # Initialize Pygame
 pygame.init()
-
 import first_window
 
 if __name__ == '__main__':
@@ -19,11 +18,8 @@ if __name__ == '__main__':
     game_info['max_steps_per_episode'] = int(game_info['max_steps_per_episode'])
     game_info['training_phase'] = int(game_info['training_phase'])
     game_info['play_phase'] = int(game_info['play_phase'])
-
-
-
     if game_info['algorithm'] == "Q_Learning":
         game_info = q_learning_agent.main(game_info)
     else:
         game_info = sarsa_agent.main(game_info)
-    display_animation.main(game_info, play_phase = True)
+    display_animation.main(game_info, play_phase=True)

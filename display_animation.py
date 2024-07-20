@@ -1,18 +1,24 @@
 import pygame
-import numpy as np
+from policeman import Policeman
+
+
 # Define colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+AQUA = (0, 255, 255)
 # Define the size of the grid and cells
 CELL_SIZE = 128
 
 
-def draw_grid(screen, grid_size):
+def draw_grid(screen, grid_size, slippery):
     for i in range(grid_size):
         for j in range(grid_size):
-            rect = pygame.Rect(j * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            pygame.draw.rect(screen, WHITE, rect, 1)
-
+            if (i, j) not in slippery:
+                rect = pygame.Rect(j * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                pygame.draw.rect(screen, WHITE, rect, 1)
+            else:
+                rect = pygame.Rect(j * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                pygame.draw.rect(screen, AQUA, rect)
 
 def draw_bot(screen, bot_image, position):
     x, y = position
@@ -27,7 +33,12 @@ def draw_rewards(screen, rewards, good_reward_image, bad_reward_image):
             screen.blit(bad_reward_image, (j * CELL_SIZE, i * CELL_SIZE))
 
 
-def main(game_info, play_phase=False):
+def draw_policeman(screen, policeman_image, position):
+    x, y = position
+    screen.blit(policeman_image, (y * CELL_SIZE, x * CELL_SIZE))
+
+
+def main(game_info, play_phase=False, amount_of_plays=100):
     grid_size = game_info['grid_size']
     policy = game_info['policy']
     rewards = game_info['rewards']
@@ -41,10 +52,12 @@ def main(game_info, play_phase=False):
     good_reward_image = pygame.transform.scale(good_reward_image, (CELL_SIZE, CELL_SIZE))
     bad_reward_image = pygame.image.load("skull.png").convert_alpha()
     bad_reward_image = pygame.transform.scale(bad_reward_image, (CELL_SIZE, CELL_SIZE))
+    policeman_image = pygame.image.load("policeman.png").convert_alpha()
+    policeman_image = pygame.transform.scale(policeman_image, (CELL_SIZE, CELL_SIZE))
 
     screen.fill(WHITE)  # Clear the screen
     draw_rewards(screen, rewards, good_reward_image, bad_reward_image)
-    draw_grid(screen, grid_size)  # Draw grid after rewards to ensure visibility
+    draw_grid(screen, grid_size, game_info['slippery'])  # Draw grid after rewards to ensure visibility
     pygame.display.flip()
     # Set up a timer event to trigger every second
     pygame.time.set_timer(pygame.USEREVENT, 1000)
@@ -52,19 +65,29 @@ def main(game_info, play_phase=False):
     current_index = 0
     running = True
 
+    policeman = Policeman(grid_size)
+
     if play_phase:
         # For the play phase, simulate 100 plays
-        plays = 100
-        for _ in range(plays):
+        for _ in range(amount_of_plays):
             s = (0, 0)  # Start position
+            policeman.reset_police()
             while s in policy:
                 action = policy[s]
                 screen.fill(BLACK)  # Clear the screen
                 draw_rewards(screen, rewards, good_reward_image, bad_reward_image)
+                draw_grid(screen, grid_size, game_info['slippery'])  # Draw grid after bot to ensure visibility
                 draw_bot(screen, bot_image, s)
-                draw_grid(screen, grid_size)  # Draw grid after bot to ensure visibility
+                draw_policeman(screen, policeman_image, policeman.get_pos())
                 pygame.display.flip()
-                pygame.time.delay(300)  # Adjust delay for speed of animation
+                pygame.time.delay(600)  # Adjust delay for speed of animation
+
+                # Move policeman and check for collision
+                if policeman.get_pos() == s:
+                    print("Game Over")
+                    break
+
+                policeman.move()
                 s = get_next_state(s, action)
             clock.tick(30)
     else:
@@ -76,10 +99,11 @@ def main(game_info, play_phase=False):
                 elif event.type == pygame.USEREVENT:
                     if current_index < len(policy_items):
                         (i, j), action = policy_items[current_index]
-                        screen.fill(WHITE)  # Clear the screen
+                        screen.fill(BLACK)  # Clear the screen
                         draw_rewards(screen, rewards, good_reward_image, bad_reward_image)
                         draw_bot(screen, bot_image, (i, j))
-                        draw_grid(screen, grid_size)  # Draw grid after bot to ensure visibility
+                        draw_policeman(screen, policeman_image, policeman.get_pos())
+                        draw_grid(screen, grid_size, game_info['slippery'])  # Draw grid after bot to ensure visibility
                         pygame.display.flip()
                         current_index += 1
             clock.tick(30)

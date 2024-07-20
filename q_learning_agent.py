@@ -31,30 +31,52 @@ class QLearning:
         if np.random.random() < 0.5:
             return utils.max_dict(self.q[s])[0]
         else:
-            return np.random.choice(ACTION_SPACE)
+            return np.random.choice(list(self.q[s].keys()))
 
-    def run(self, max_steps, episodes=1000, epsilon=0.1):
+    def second_best(self, s, a):
+        action_space = []
+        for item in s.keys():
+            if item != a:
+                action_space.append(item)
+            else:
+                continue
+        new_action = np.random.choice(action_space)
+
+        return new_action, s[new_action]
+
+    def train(self, max_steps, episodes=1000, epsilon=0.1):
         reward_per_episode = []
         for it in range(episodes):
             if it % 2000 == 0:
                 print("it:", it)
             s = self.grid.reset()
+            self.grid.policeman.reset_police()
             episode_reward = 0
             step = 0
             while (not self.grid.game_over()) and step < max_steps:
+                self.grid.policeman.move()
                 step += 1
                 a = self.epsilon_greedy(s, eps=epsilon)
                 if s in self.grid.slippery:
                     a = self.slippery(s)
                 r = self.grid.move(a)
-
-                s2 = self.grid.current_state()
-                episode_reward += r
-                max_q = utils.max_dict(self.q[s2])[1]
-                self.q[s][a] = self.q[s][a] + self.alpha * (r + self.gamma * max_q - self.q[s][a])
-                self.update_counts[s] = self.update_counts.get(s, 0) + 1
-                s = s2
-            reward_per_episode.append(episode_reward)
+                if self.grid.policeman.get_pos() == self.grid.current_state():
+                    self.grid.undo_move(a)
+                    new_action, second_best_q = self.second_best(self.q[s], a)  # Second-best choice in the q table.
+                    r = self.grid.move(new_action)
+                    s2 = self.grid.current_state()
+                    episode_reward += r
+                    self.q[s][new_action] = self.q[s][new_action] + self.alpha * (r + self.gamma * second_best_q - self.q[s][new_action])
+                    self.update_counts[s] = self.update_counts.get(s, 0) + 1
+                    s = s2
+                else:
+                    s2 = self.grid.current_state()
+                    episode_reward += r
+                    max_q = utils.max_dict(self.q[s2])[1]
+                    self.q[s][a] = self.q[s][a] + self.alpha * (r + self.gamma * max_q - self.q[s][a])
+                    self.update_counts[s] = self.update_counts.get(s, 0) + 1
+                    s = s2
+                reward_per_episode.append(episode_reward)
         return reward_per_episode
 
     def extract_policy_and_values(self):
@@ -70,7 +92,7 @@ class QLearning:
 def main(game_info):
     grid = standard_grid(n=game_info['grid_size'], rewards=game_info['rewards'], slippery=game_info['slippery'])
     q_learning = QLearning(grid=grid, gamma=game_info['gamma'], alpha=game_info['alpha'])
-    rewards = q_learning.run(episodes=game_info['training_phase'], max_steps=game_info['max_steps_per_episode'], epsilon=game_info['epsilon'])
+    rewards = q_learning.train(episodes=game_info['training_phase'], max_steps=game_info['max_steps_per_episode'], epsilon=game_info['epsilon'])
     plt.plot(rewards)
     plt.title("Reward per Episode")
     plt.show()

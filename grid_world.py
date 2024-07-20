@@ -1,5 +1,4 @@
-import numpy as np
-
+from policeman import Policeman
 ACTION_SPACE = ('U', 'D', 'L', 'R')
 
 
@@ -13,6 +12,8 @@ class Grid:
         self.rewards = rewards
         self.slippery = slippery
         self.actions = self.generate_actions()
+        self.policeman = Policeman(rows)
+
     def generate_actions(self):
         actions = {}
         for i in range(self.rows):
@@ -61,7 +62,7 @@ class Grid:
 
     def move(self, action):
         # check if legal move first
-        if action in self.actions[(self.i, self.j)] and (self.i, self.j) not in self.slippery:
+        if action in self.actions[(self.i, self.j)]:
             if action == 'U':
                 self.i -= 1
             elif action == 'D':
@@ -88,25 +89,6 @@ class Grid:
 
     def all_states(self):
         return set(self.actions.keys()) | set(self.rewards.keys())
-
-    def generate_probs(self):
-        probs = {}
-        for s in self.actions.keys():
-            for a in ACTION_SPACE:
-                if a in self.actions[s]:
-                    next_state = self.get_next_state(s, a)
-                    if s in self.slippery:
-                        # Slippery cell: Equal probability to move to any adjacent cell
-                        possible_states = [self.get_next_state(s, action) for action in ACTION_SPACE if action in self.actions[s]]
-                        prob = 1 / len(possible_states)
-                        probs[(s, a)] = {state: prob for state in possible_states}
-                    else:
-                        # Regular cell: Deterministic movement
-                        probs[(s, a)] = {next_state: 1.0}
-                else:
-                    # If the action is not valid in this state, it stays in the same state
-                    probs[(s, a)] = {s: 1.0}
-        return probs
 
 
 def standard_grid(n, rewards, slippery):

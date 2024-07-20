@@ -11,7 +11,7 @@ def print_values(V, g):
     for i in range(g.rows):
         print("---------------------------")
         for j in range(g.cols):
-            v = V.get((i, j), 0)
+            v = V.get((i, j), 0)  # 0 means that if there is no value, assign 0.
             print(" %.2f|" % v, end="")
         print("")
 

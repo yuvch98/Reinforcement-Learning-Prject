@@ -14,13 +14,14 @@ class Policeman:
         return self.row, self.col
 
     def move(self):
+        self.direction = random.choice(['U', 'D'])
         if self.direction == 'U':
             if self.row - 1 >= 0:
                 self.row -= 1
-        else:  # the meaning is that the direction is down
-            if self.row + 1 <= (self.grid_size - 1):
+        elif self.direction == 'D':
+            if self. row + 1 <= self.grid_size - 1:
                 self.row += 1
 
-    def reset(self):
+    def reset_police(self):
         self.row = random.randint(1, self.grid_size-1)
         self.col = random.randint(0, self.grid_size-1)
