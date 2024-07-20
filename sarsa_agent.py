@@ -12,6 +12,7 @@ class SARSA:
         self.q = {}
         self.update_counts = {}
         self.initialize_q()
+        self.policy = {}
 
     def initialize_q(self):
         states = self.grid.all_states()
@@ -26,36 +27,28 @@ class SARSA:
         else:
             return utils.max_dict(self.q[s])[0]
 
-
-    def slippery(self, s):
-        if np.random.random() < 0.5:
-            return utils.max_dict(self.q[s])[0]
-        else:
-            return np.random.choice(ACTION_SPACE)
-
-    def run(self, episodes=10000, max_steps=50, epsilon=0.1):
+    def train(self, episodes=10000, max_steps=50, epsilon=0.1):
         reward_per_episode = []
         for it in range(episodes):
             if it % 2000 == 0:
                 print("it:", it)
             s = self.grid.reset()
-            a = self.epsilon_greedy(s, eps=epsilon)
+            self.grid.policeman.reset_police()
             episode_reward = 0
             step = 0
-            while not self.grid.game_over() or step < max_steps:
+            while not self.grid.game_over() and step < max_steps:
+                self.grid.policeman.move()
                 step += 1
-                r = self.grid.move(a)
+                a = self.epsilon_greedy(s, eps=epsilon)
+                r = self.grid.move(a, self.q)
                 s2 = self.grid.current_state()
                 episode_reward += r
-                a2 = self.epsilon_greedy(s, eps=epsilon)
-                if s2 in self.grid.slippery:
-                    a2 = self.slippery(s2)
+                a2 = self.epsilon_greedy(s2, eps=epsilon)
                 self.q[s][a] = self.q[s][a] + self.alpha * (r + self.gamma * self.q[s2][a2] - self.q[s][a])
                 self.update_counts[s] = self.update_counts.get(s, 0) + 1
                 s = s2
-                a = a2
             reward_per_episode.append(episode_reward)
-        return reward_per_episode
+        return reward_per_episode, self.q
 
     def extract_policy_and_values(self):
         policy = {}
@@ -64,13 +57,14 @@ class SARSA:
             a, max_q = utils.max_dict(self.q[s])
             policy[s] = a
             V[s] = max_q
+        self.policy = policy.copy()
         return policy, V
 
 
 def main(game_info):
     grid = standard_grid(n=game_info['grid_size'], rewards=game_info['rewards'], slippery=game_info['slippery'])
     sarsa = SARSA(grid, gamma=game_info['gamma'], alpha=game_info['alpha'])
-    rewards = sarsa.run(episodes=game_info['training_phase'], max_steps=game_info['max_steps_per_episode'], epsilon=game_info['epsilon'])
+    rewards, q = sarsa.train(episodes=game_info['training_phase'], max_steps=game_info['max_steps_per_episode'], epsilon=game_info['epsilon'])
     plt.plot(rewards)
     plt.title("Reward per Episode")
     plt.show()
@@ -80,4 +74,5 @@ def main(game_info):
     print("Policy:")
     utils.print_policy(policy, grid)
     game_info['policy'] = policy
+    game_info['q'] = q
     return game_info
