@@ -26,5 +26,4 @@ if __name__ == '__main__':
         game_info = q_learning_agent.main(game_info)
     else:
         game_info = sarsa_agent.main(game_info)
-
-    display_animation.main(game_info)
+    display_animation.main(game_info, play_phase = True)

@@ -26,6 +26,13 @@ class SARSA:
         else:
             return utils.max_dict(self.q[s])[0]
 
+
+    def slippery(self, s):
+        if np.random.random() < 0.5:
+            return utils.max_dict(self.q[s])[0]
+        else:
+            return np.random.choice(ACTION_SPACE)
+
     def run(self, episodes=10000, max_steps=50, epsilon=0.1):
         reward_per_episode = []
         for it in range(episodes):
@@ -40,7 +47,9 @@ class SARSA:
                 r = self.grid.move(a)
                 s2 = self.grid.current_state()
                 episode_reward += r
-                a2 = self.epsilon_greedy(s2)
+                a2 = self.epsilon_greedy(s, eps=epsilon)
+                if s2 in self.grid.slippery:
+                    a2 = self.slippery(s2)
                 self.q[s][a] = self.q[s][a] + self.alpha * (r + self.gamma * self.q[s2][a2] - self.q[s][a])
                 self.update_counts[s] = self.update_counts.get(s, 0) + 1
                 s = s2
@@ -56,6 +65,7 @@ class SARSA:
             policy[s] = a
             V[s] = max_q
         return policy, V
+
 
 def main(game_info):
     grid = standard_grid(n=game_info['grid_size'], rewards=game_info['rewards'], slippery=game_info['slippery'])

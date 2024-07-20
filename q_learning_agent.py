@@ -27,19 +27,27 @@ class QLearning:
         else:
             return utils.max_dict(self.q[s])[0]
 
+    def slippery(self, s):
+        if np.random.random() < 0.5:
+            return utils.max_dict(self.q[s])[0]
+        else:
+            return np.random.choice(ACTION_SPACE)
+
     def run(self, max_steps, episodes=1000, epsilon=0.1):
         reward_per_episode = []
         for it in range(episodes):
-            if it % 200 == 0:
+            if it % 2000 == 0:
                 print("it:", it)
             s = self.grid.reset()
             episode_reward = 0
             step = 0
-            while (not self.grid.game_over()) or step < max_steps:
-
+            while (not self.grid.game_over()) and step < max_steps:
                 step += 1
                 a = self.epsilon_greedy(s, eps=epsilon)
+                if s in self.grid.slippery:
+                    a = self.slippery(s)
                 r = self.grid.move(a)
+
                 s2 = self.grid.current_state()
                 episode_reward += r
                 max_q = utils.max_dict(self.q[s2])[1]

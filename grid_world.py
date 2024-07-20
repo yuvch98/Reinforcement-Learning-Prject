@@ -2,6 +2,7 @@ import numpy as np
 
 ACTION_SPACE = ('U', 'D', 'L', 'R')
 
+
 class Grid:
     def __init__(self, rows, cols, start, rewards, slippery):
         self.rows = rows
@@ -12,8 +13,6 @@ class Grid:
         self.rewards = rewards
         self.slippery = slippery
         self.actions = self.generate_actions()
-        self.probs = self.generate_probs()
-
     def generate_actions(self):
         actions = {}
         for i in range(self.rows):
@@ -61,24 +60,17 @@ class Grid:
         return i, j
 
     def move(self, action):
-        s = (self.i, self.j)
-        a = str(action)  # Ensure action is a string
-
-        if (s, a) not in self.probs:
-            print(f"Key ({s}, {a}) not found in self.probs")
-            return 0  # or raise an error
-
-        next_state_probs = self.probs[(s, a)]
-        next_states = list(next_state_probs.keys())
-        next_probs = list(next_state_probs.values())
-        next_state_idx = np.random.choice(len(next_states), p=next_probs)
-        s2 = next_states[next_state_idx]
-
-        # update the current state
-        self.i, self.j = s2
-
-        # return a reward (if any)
-        return self.rewards.get(s2, 0)
+        # check if legal move first
+        if action in self.actions[(self.i, self.j)] and (self.i, self.j) not in self.slippery:
+            if action == 'U':
+                self.i -= 1
+            elif action == 'D':
+                self.i += 1
+            elif action == 'R':
+                self.j += 1
+            elif action == 'L':
+                self.j -= 1
+        return self.rewards.get((self.i, self.j), 0)
 
     def undo_move(self, action):
         if action == 'U':
@@ -92,7 +84,7 @@ class Grid:
         assert self.current_state() in self.all_states(), "State after undo should be valid."
 
     def game_over(self):
-        return (self.i, self.j) not in self.actions
+        return (self.i, self.j) not in self.actions  # if the agent not in the finite state
 
     def all_states(self):
         return set(self.actions.keys()) | set(self.rewards.keys())

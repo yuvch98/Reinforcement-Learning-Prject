@@ -42,8 +42,8 @@ def main():
         'alpha': 0.1,
         'gamma': 0.9,
         'epsilon': 0.1,
-        'max_steps_per_episode': 50,
-        'training_phase': 1000,
+        'max_steps_per_episode': 75,
+        'training_phase': 10000,
         'play_phase': 100,
     }
     running = True
@@ -55,8 +55,8 @@ def main():
         'alpha': InputBox(400, 60, 120, 32, '0.1'),
         'gamma': InputBox(400, 100, 120, 32, '0.9'),
         'epsilon': InputBox(400, 140, 120, 32, '0.1'),
-        'max_steps_per_episode': InputBox(400, 180, 120, 32, '50'),
-        'training_phase': InputBox(400, 220, 120, 32, '1000'),
+        'max_steps_per_episode': InputBox(400, 180, 120, 32, '75'),
+        'training_phase': InputBox(400, 220, 120, 32, '10000'),
         'play_phase': InputBox(400, 260, 120, 32, '100'),
     }
     combo_box = ComboBox(400, 300, 120, 50, FONT, ['Q_Learning', 'SARSA'])
