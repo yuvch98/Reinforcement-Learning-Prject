@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from grid_world import standard_grid, ACTION_SPACE
+from grid_world import standard_grid
+from constants import ACTION_SPACE
 import utils
 
 
@@ -22,8 +23,11 @@ class SARSA:
                 self.q[s][a] = 0
 
     def epsilon_greedy(self, s, eps=0.1):
-        if np.random.random() < eps:
+        if s in list(self.grid.rewards.keys()):
+            print("visited a final state")
             return np.random.choice(ACTION_SPACE)
+        if np.random.random() < eps:
+            return np.random.choice(list(self.grid.actions[s]))
         else:
             return utils.max_dict(self.q[s])[0]
 
@@ -34,12 +38,12 @@ class SARSA:
                 print("it:", it)
             s = self.grid.reset()
             self.grid.policeman.reset_police()
+            a = self.epsilon_greedy(s, eps=epsilon)
             episode_reward = 0
             step = 0
             while not self.grid.game_over() and step < max_steps:
                 self.grid.policeman.move()
                 step += 1
-                a = self.epsilon_greedy(s, eps=epsilon)
                 r = self.grid.move(a, self.q)
                 s2 = self.grid.current_state()
                 episode_reward += r
@@ -47,6 +51,7 @@ class SARSA:
                 self.q[s][a] = self.q[s][a] + self.alpha * (r + self.gamma * self.q[s2][a2] - self.q[s][a])
                 self.update_counts[s] = self.update_counts.get(s, 0) + 1
                 s = s2
+                a = a2
             reward_per_episode.append(episode_reward)
         return reward_per_episode, self.q
 
@@ -62,9 +67,13 @@ class SARSA:
 
 
 def main(game_info):
-    grid = standard_grid(n=game_info['grid_size'], rewards=game_info['rewards'], slippery=game_info['slippery'])
+    grid = standard_grid(n=game_info['grid_size'], rewards=game_info['rewards'], slippery=game_info['slippery'],
+                         walls=game_info['walls'], coins=game_info['coins'], lever=game_info['lever'],
+                         reward_per_coin=game_info['reward_per_coins'], walls_to_remove=game_info['walls_to_remove'])
+
     sarsa = SARSA(grid, gamma=game_info['gamma'], alpha=game_info['alpha'])
-    rewards, q = sarsa.train(episodes=game_info['training_phase'], max_steps=game_info['max_steps_per_episode'], epsilon=game_info['epsilon'])
+    rewards, q = sarsa.train(episodes=game_info['training_phase'], max_steps=game_info['max_steps_per_episode'],
+                             epsilon=game_info['epsilon'])
     plt.plot(rewards)
     plt.title("Reward per Episode")
     plt.show()

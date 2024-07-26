@@ -16,6 +16,7 @@ FONT = pygame.font.Font(None, 22)
 screen = pygame.display.set_mode((const.SCREEN_WIDTH, const.SCREEN_HEIGHT))
 pygame.display.set_caption("Input Information")
 
+
 def check_all_lines(input_boxes) -> bool:
     try:
         for key in input_boxes.keys():
@@ -36,6 +37,7 @@ def check_all_lines(input_boxes) -> bool:
         return True
     return False
 
+
 def main():
     information = {
         'grid_size': 5,
@@ -51,18 +53,19 @@ def main():
 
     # Creating input boxes for all parameters
     input_boxes = {
-        'grid_size': InputBox(400, 20, 120, 32, '5'),
+        'grid_size': InputBox(400, 20, 120, 32, '6'),
         'alpha': InputBox(400, 60, 120, 32, '0.1'),
         'gamma': InputBox(400, 100, 120, 32, '0.9'),
         'epsilon': InputBox(400, 140, 120, 32, '0.1'),
         'max_steps_per_episode': InputBox(400, 180, 120, 32, '75'),
         'training_phase': InputBox(400, 220, 120, 32, '1000'),
         'play_phase': InputBox(400, 260, 120, 32, '100'),
+        'reward_per_coins': InputBox(400, 300, 120, 32, '1')
     }
-    combo_box = ComboBox(400, 300, 120, 50, FONT, ['Q_Learning', 'SARSA'])
+    combo_box = ComboBox(400, 340, 120, 50, FONT, ['Q_Learning', 'SARSA'])
 
     # Corresponding labels for the input boxes
-    button = Button(700, 320, 120, 50, 'Continue')
+    button = Button(700, 340, 120, 50, 'Continue')
 
     while running:
         for event in pygame.event.get():
@@ -92,7 +95,7 @@ def main():
             input_boxes[box].draw(screen)
 
         algorithm_label = FONT.render('algorithm', True, const.TEXT_COLOR)
-        screen.blit(algorithm_label, (200, 310))
+        screen.blit(algorithm_label, (200, 350))
 
         button.draw(screen)
         combo_box.draw(screen)

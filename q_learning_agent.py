@@ -1,13 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from grid_world import standard_grid, ACTION_SPACE
+from grid_world import standard_grid
+from constants import ACTION_SPACE
 import utils
 
 
 class QLearning:
     def __init__(self, grid, gamma=0.9, alpha=0.1):
         self.grid = grid
-        print(self.grid)
         self.gamma = gamma
         self.alpha = alpha
         self.q = {}
@@ -24,7 +24,7 @@ class QLearning:
 
     def epsilon_greedy(self, s, eps=0.1):
         if np.random.random() < eps:
-            return np.random.choice(ACTION_SPACE)
+            return np.random.choice(list(self.grid.actions[s]))
         else:
             return utils.max_dict(self.q[s])[0]
 
@@ -37,6 +37,8 @@ class QLearning:
             self.grid.policeman.reset_police()
             episode_reward = 0
             step = 0
+            if it == 1:
+                print(self.q)
             while (not self.grid.game_over()) and step < max_steps:
                 self.grid.policeman.move()
                 step += 1
@@ -63,10 +65,16 @@ class QLearning:
 
 
 def main(game_info):
-    grid = standard_grid(n=game_info['grid_size'], rewards=game_info['rewards'], slippery=game_info['slippery'])
+    grid = standard_grid(n=game_info['grid_size'], rewards=game_info['rewards'], slippery=game_info['slippery'],
+                         walls=game_info['walls'], coins=game_info['coins'], lever=game_info['lever'],
+                         reward_per_coin=game_info['reward_per_coins'], walls_to_remove=game_info['walls_to_remove'])
+
     q_learning = QLearning(grid=grid, gamma=game_info['gamma'], alpha=game_info['alpha'])
-    rewards, q = q_learning.train(episodes=game_info['training_phase'], max_steps=game_info['max_steps_per_episode'], epsilon=game_info['epsilon'])
-    plt.plot(rewards)
+
+    rewards, q = q_learning.train(episodes=game_info['training_phase'], max_steps=game_info['max_steps_per_episode'],
+                                  epsilon=game_info['epsilon'])
+    print(q_learning.grid.print_values())
+    plt.scatter(range(len(rewards)), rewards)
     plt.title("Reward per Episode")
     plt.show()
     policy, V = q_learning.extract_policy_and_values()
