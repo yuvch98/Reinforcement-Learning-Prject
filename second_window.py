@@ -25,13 +25,14 @@ def draw_grid(screen, grid_x, grid_y, cell_size, selected_cells, slippery_cells,
                 lever_image = pygame.image.load("lever.png").convert_alpha()
                 lever_image = pygame.transform.scale(lever_image, (cell_size, cell_size))
                 screen.blit(lever_image, (col * cell_size, 250 + row * cell_size))
+            elif (row, col) in walls_to_remove:
+                remove_image = pygame.image.load("remove.png").convert_alpha()
+                remove_image = pygame.transform.scale(remove_image, (cell_size, cell_size))
+                screen.blit(remove_image, (col * cell_size, 250 + row * cell_size))
             elif (row, col) in wall_positions:
                 wall_image = pygame.image.load("wall.png").convert_alpha()
                 wall_image = pygame.transform.scale(wall_image, (cell_size, cell_size))
                 screen.blit(wall_image, (col * cell_size, 250 + row * cell_size))
-            elif (row, col) in walls_to_remove:
-                glow_rect = pygame.Rect(col * cell_size, 250 + row * cell_size, cell_size, cell_size)
-                pygame.draw.rect(screen, const.GLOW_COLOR, glow_rect, 5)
             elif col % 2 == 0 and row % 2 == 0:
                 pygame.draw.rect(screen, const.CELL_EVEN_COLOR, rect)
                 pygame.draw.rect(screen, (0, 0, 0), rect, 1)
@@ -44,6 +45,7 @@ def draw_grid(screen, grid_x, grid_y, cell_size, selected_cells, slippery_cells,
             else:
                 pygame.draw.rect(screen, const.CELL_EVEN_COLOR, rect)
                 pygame.draw.rect(screen, (0, 0, 0), rect, 1)
+
 
 def draw_label(screen, text, font, color, x, y):
     label_surface = font.render(text, True, color)
