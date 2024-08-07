@@ -3,17 +3,27 @@ import sys
 import matplotlib.pyplot as plt
 from grid_world import standard_grid
 from matplotlib.pyplot import style
+
 style.use('fivethirtyeight')
+
 # Define colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 AQUA = (0, 255, 255)
 CREAM = (255, 253, 208)
+
 # Define the size of the grid and cells
 CELL_SIZE = 100
 
 
 def draw_grid(screen, grid):
+    """
+    Draws the grid on the screen.
+
+    Args:
+        screen (pygame.Surface): The Pygame surface to draw on.
+        grid (Grid): The Grid object representing the environment.
+    """
     for i in range(grid.rows):
         for j in range(grid.cols):
             rect = pygame.Rect(j * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE)
@@ -43,11 +53,28 @@ def draw_grid(screen, grid):
 
 
 def draw_bot(screen, bot_image, position):
+    """
+    Draws the bot at the given position.
+
+    Args:
+        screen (pygame.Surface): The Pygame surface to draw on.
+        bot_image (pygame.Surface): The image of the bot.
+        position (tuple): The position (i, j) to draw the bot at.
+    """
     x, y = position
     screen.blit(bot_image, (y * CELL_SIZE, x * CELL_SIZE))
 
 
 def draw_rewards(screen, rewards, good_reward_image, bad_reward_image):
+    """
+    Draws the rewards at their respective positions.
+
+    Args:
+        screen (pygame.Surface): The Pygame surface to draw on.
+        rewards (dict): Dictionary with positions as keys and rewards as values.
+        good_reward_image (pygame.Surface): Image for good rewards.
+        bad_reward_image (pygame.Surface): Image for bad rewards.
+    """
     for (i, j), reward in rewards.items():
         if reward > 0:
             screen.blit(good_reward_image, (j * CELL_SIZE, i * CELL_SIZE))
@@ -56,11 +83,27 @@ def draw_rewards(screen, rewards, good_reward_image, bad_reward_image):
 
 
 def draw_policeman(screen, policeman_image, position):
+    """
+    Draws the policeman at the given position.
+
+    Args:
+        screen (pygame.Surface): The Pygame surface to draw on.
+        policeman_image (pygame.Surface): The image of the policeman.
+        position (tuple): The position (i, j) to draw the policeman at.
+    """
     x, y = position
     screen.blit(policeman_image, (y * CELL_SIZE, x * CELL_SIZE))
 
 
 def main(game_info, play_phase=False, amount_of_plays=100):
+    """
+    Main function to run the game.
+
+    Args:
+        game_info (dict): Dictionary containing game configuration.
+        play_phase (bool, optional): Flag to indicate if it's play phase. Default is False.
+        amount_of_plays (int, optional): Number of plays to simulate. Default is 100.
+    """
     grid_size = game_info['grid_size']
     policy = game_info['policy']
     rewards = game_info['rewards']
@@ -71,7 +114,7 @@ def main(game_info, play_phase=False, amount_of_plays=100):
     lever = game_info['lever']
     reward_per_coin = game_info['reward_per_coins']
     walls_to_remove = game_info['walls_to_remove']
-    #  n, rewards, slippery, walls, coins, lever, reward_per_coin, walls_to_remove, q={}
+
     grid = standard_grid(n=grid_size, rewards=rewards, slippery=slippery, q=q, walls=walls,
                          coins=coins, lever=lever, reward_per_coin=reward_per_coin,
                          walls_to_remove=walls_to_remove)
@@ -92,7 +135,8 @@ def main(game_info, play_phase=False, amount_of_plays=100):
 
     fig, ax = plt.subplots()
     ax.scatter([], [])
-    ax.set_ylim(min(grid.rewards.values())+grid.policeman.reward, max(grid.rewards.values())+((len(grid.coins))*grid.reward_coin))
+    ax.set_ylim(min(grid.rewards.values()) + grid.policeman.reward,
+                max(grid.rewards.values()) + ((len(grid.coins)) * grid.reward_coin))
     ax.set_xlim(0, amount_of_plays)
     ax.set_title("Rewards Over Plays")  # Add title to the plot
     plt.ion()
@@ -139,7 +183,6 @@ def main(game_info, play_phase=False, amount_of_plays=100):
                     # Move policeman and check for collision
                     if grid.policeman.get_pos() == s:
                         reward += grid.policeman.reward
-                        reward -= 5
                         reward_per_play.append(reward)
                         print("Game Over")
                         break
@@ -158,7 +201,8 @@ def main(game_info, play_phase=False, amount_of_plays=100):
 
                 ax.cla()  # Clear previous scatter plot
                 ax.scatter([x for x, y in reward_data], [y for x, y in reward_data], s=100)
-                ax.set_ylim(min(0, min(grid.rewards.values())-10), (max(grid.rewards.values())+(len(grid.coins)*grid.reward_coin))*2+5)
+                ax.set_ylim(min(grid.policeman.reward, min(grid.rewards.values()) - 10),
+                            (max(grid.rewards.values()) + (len(grid.coins) * grid.reward_coin)) * 2 + 5)
                 ax.set_xlim(0, play_index + 1)
                 ax.set_title("Rewards Over Plays")  # Set title again after clearing axes
                 plt.draw()
@@ -178,6 +222,16 @@ def main(game_info, play_phase=False, amount_of_plays=100):
 
 
 def get_next_state(state, action):
+    """
+    Returns the next state given the current state and action.
+
+    Args:
+        state (tuple): Current position (i, j).
+        action (str): Action to be taken ('U', 'D', 'L', 'R').
+
+    Returns:
+        tuple: New position (i, j) after the action is taken.
+    """
     i, j = state
     if action == 'U':
         return i - 1, j

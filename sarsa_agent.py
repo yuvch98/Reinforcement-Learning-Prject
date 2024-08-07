@@ -7,6 +7,14 @@ import utils
 
 class SARSA:
     def __init__(self, grid, gamma=0.9, alpha=0.1):
+        """
+        Initializes the SARSA agent.
+
+        Args:
+            grid (Grid): The grid environment.
+            gamma (float, optional): Discount factor. Default is 0.9.
+            alpha (float, optional): Learning rate. Default is 0.1.
+        """
         self.grid = grid
         self.gamma = gamma
         self.alpha = alpha
@@ -16,6 +24,9 @@ class SARSA:
         self.policy = {}
 
     def initialize_q(self):
+        """
+        Initializes the Q-values for all state-action pairs to zero.
+        """
         states = self.grid.all_states()
         for s in states:
             self.q[s] = {}
@@ -23,6 +34,16 @@ class SARSA:
                 self.q[s][a] = 0
 
     def epsilon_greedy(self, s, eps=0.1):
+        """
+        Chooses an action using the epsilon-greedy policy.
+
+        Args:
+            s (tuple): The current state.
+            eps (float, optional): The probability of choosing a random action. Default is 0.1.
+
+        Returns:
+            str: The chosen action.
+        """
         if s in list(self.grid.rewards.keys()):
             print("visited a final state")
             return np.random.choice(ACTION_SPACE)
@@ -32,6 +53,18 @@ class SARSA:
             return utils.max_dict(self.q[s])[0]
 
     def train(self, episodes=10000, max_steps=50, epsilon=0.1):
+        """
+        Trains the SARSA agent.
+
+        Args:
+            episodes (int, optional): Number of episodes to train. Default is 10000.
+            max_steps (int, optional): Maximum steps per episode. Default is 50.
+            epsilon (float, optional): The probability of choosing a random action. Default is 0.1.
+
+        Returns:
+            list: Reward per episode.
+            dict: The Q-values.
+        """
         reward_per_episode = []
         for it in range(episodes):
             if it % 2000 == 0:
@@ -53,9 +86,19 @@ class SARSA:
                 s = s2
                 a = a2
             reward_per_episode.append(episode_reward)
-        return reward_per_episode, self.q
+        final_reward_per_episode = []
+        for i in range(0, len(reward_per_episode), 10):
+            final_reward_per_episode.append(sum(reward_per_episode[i:i + 9]) // 10)
+        return final_reward_per_episode, self.q
 
     def extract_policy_and_values(self):
+        """
+        Extracts the policy and state values from the Q-values.
+
+        Returns:
+            dict: The policy.
+            dict: The state values.
+        """
         policy = {}
         V = {}
         for s in self.grid.actions.keys():
@@ -67,6 +110,15 @@ class SARSA:
 
 
 def main(game_info):
+    """
+    Main function to set up the grid and train the SARSA agent.
+
+    Args:
+        game_info (dict): Dictionary containing game configuration.
+
+    Returns:
+        dict: Updated game configuration with trained policy and Q-values.
+    """
     grid = standard_grid(n=game_info['grid_size'], rewards=game_info['rewards'], slippery=game_info['slippery'],
                          walls=game_info['walls'], coins=game_info['coins'], lever=game_info['lever'],
                          reward_per_coin=game_info['reward_per_coins'], walls_to_remove=game_info['walls_to_remove'])
